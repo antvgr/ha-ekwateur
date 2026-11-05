@@ -1,0 +1,7 @@
+{
+  "name": "Ekwateur",
+  "homeassistant": "2024.11.0",
+  "country": "FR",
+  "zip_release": true,
+  "filename": "ekwateur.zip"
+}
