@@ -1,0 +1,37 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Ekwateur",
+        "description": "Paste the login response copied with the « Jetons Ekwateur » bookmark (JSON containing AccessToken and RefreshToken). See the README.",
+        "data": {
+          "credentials": "Login response / tokens"
+        }
+      },
+      "contract": {
+        "title": "Select contract",
+        "data": {
+          "customer_reference": "Contract"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Ekwateur session expired",
+        "description": "Log in again on mon-espace.ekwateur.fr using the « Jetons Ekwateur » bookmark and paste the new response here.",
+        "data": {
+          "credentials": "Login response / tokens"
+        }
+      }
+    },
+    "error": {
+      "invalid_format": "Unrecognised format: paste the full login JSON (RefreshToken and Username required).",
+      "invalid_auth": "Invalid or expired tokens.",
+      "cannot_connect": "Unable to reach the Ekwateur API.",
+      "no_contract": "No contract found on this account.",
+      "wrong_account": "These tokens belong to another account."
+    },
+    "abort": {
+      "already_configured": "This contract is already configured.",
+      "reauth_successful": "Session updated."
+    }
+  }
+}

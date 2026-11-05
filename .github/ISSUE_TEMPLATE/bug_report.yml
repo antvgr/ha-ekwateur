@@ -1,0 +1,30 @@
+name: Signaler un bug
+description: Un problème avec l'intégration Ekwateur
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "⚠️ Ne collez JAMAIS vos jetons (AccessToken / RefreshToken), mot de passe ou références client complètes."
+  - type: input
+    id: ha_version
+    attributes:
+      label: Version de Home Assistant
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version de l'intégration
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description du problème
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Journaux (logger custom_components.ekwateur en debug)
+      render: text
