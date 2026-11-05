@@ -33,6 +33,8 @@ class EkwSensorDescription(SensorEntityDescription):
     value_fn: Callable[[dict], Any]
     attrs_fn: Callable[[dict], dict] | None = None
     exists_fn: Callable[[dict], bool] = lambda d: True
+    # Valeur lue sur le coordinateur plutôt que dans les données (ex. prochaine actualisation)
+    coordinator_fn: Callable[[EkwateurCoordinator], Any] | None = None
 
 
 def _meter_attrs(d: dict) -> dict:
@@ -159,6 +161,15 @@ def _static_descriptions() -> list[EkwSensorDescription]:
             value_fn=lambda d: d.get("token_expires"),
         ),
         EkwSensorDescription(
+            key="next_refresh",
+            name="Prochaine actualisation",
+            icon="mdi:timer-sand",
+            device_class=SensorDeviceClass.TIMESTAMP,
+            entity_category=EntityCategory.DIAGNOSTIC,
+            value_fn=lambda d: None,
+            coordinator_fn=lambda c: c.next_refresh,
+        ),
+        EkwSensorDescription(
             key="offer",
             name="Offre",
             icon="mdi:tag-text",
@@ -224,7 +235,10 @@ class EkwateurSensor(CoordinatorEntity[EkwateurCoordinator], SensorEntity):
 
     @property
     def native_value(self) -> Any:
-        return self.entity_description.value_fn(self.coordinator.data)
+        desc = self.entity_description
+        if desc.coordinator_fn is not None:
+            return desc.coordinator_fn(self.coordinator)
+        return desc.value_fn(self.coordinator.data)
 
     @property
     def extra_state_attributes(self) -> dict | None:
