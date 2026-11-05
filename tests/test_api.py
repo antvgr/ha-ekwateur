@@ -31,17 +31,17 @@ class _Resp:
 
 
 class _Session:
-    """/refresh_token refuse ; Cognito accepte ; l'API exige le nouveau jeton."""
+    """/refresh_token accepte refreshToken+username ; l'API exige le nouveau jeton."""
 
-    def __init__(self, ekw_ok=False):
-        self.ekw_ok, self.calls = ekw_ok, []
+    def __init__(self):
+        self.calls = []
 
     async def post(self, url, headers=None, json=None, data=None):
         self.calls.append(url)
         if "refresh_token" in url:
-            ok = self.ekw_ok and json.get("refreshToken") == RT
+            ok = json.get("refreshToken") == RT and json.get("username") == "EKW1"
             return _Resp(200, {"AccessToken": NEW}) if ok else _Resp(400, None)
-        return _Resp(200, {"AuthenticationResult": {"AccessToken": NEW}})
+        raise AssertionError(url)
 
     async def get(self, url, headers=None):
         if headers["Authorization"] == f"Bearer {NEW}":
@@ -56,17 +56,14 @@ def test_parse_credentials():
     assert parse_credentials("Bearer " + OLD)["access_token"] == OLD
 
 
-def test_retry_after_401_via_cognito():
+def test_retry_after_401_refreshes_token():
     api = EkwateurApi(_Session(), OLD, RT, "EKW1")
     refs = asyncio.run(api.get_customer_references())
     assert refs[0]["ref"] == "EKW1" and api.access_token == NEW
 
 
-def test_ekwateur_endpoint_first():
-    s = _Session(ekw_ok=True)
-    api = EkwateurApi(s, OLD, RT, "EKW1")
-    assert asyncio.run(api.refresh())
-    assert not any("cognito" in u for u in s.calls)
+def test_refresh_needs_username():
+    assert not asyncio.run(EkwateurApi(_Session(), OLD, RT, None).refresh())
 
 
 def test_no_refresh_token_raises():

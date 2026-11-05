@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Connexion à Ekwateur",
-        "description": "Collez la réponse de connexion copiée avec le favori « Jetons Ekwateur » (JSON contenant AccessToken et RefreshToken). Un RefreshToken seul fonctionne aussi. Voir le README.",
+        "description": "Collez la réponse de connexion copiée avec le favori « Jetons Ekwateur » (JSON contenant AccessToken et RefreshToken). Voir le README.",
         "data": {
           "credentials": "Réponse de connexion / jetons"
         }
@@ -23,7 +23,7 @@
       }
     },
     "error": {
-      "invalid_format": "Format non reconnu : collez le JSON de connexion ou un jeton.",
+      "invalid_format": "Format non reconnu : collez le JSON de connexion complet (RefreshToken et Username requis).",
       "invalid_auth": "Jetons invalides ou expirés.",
       "cannot_connect": "Impossible de joindre l'API Ekwateur.",
       "no_contract": "Aucun contrat trouvé sur ce compte.",

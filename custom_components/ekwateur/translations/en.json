@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Connect to Ekwateur",
-        "description": "Paste the login response copied with the « Jetons Ekwateur » bookmark (JSON containing AccessToken and RefreshToken). A RefreshToken alone also works. See the README.",
+        "description": "Paste the login response copied with the « Jetons Ekwateur » bookmark (JSON containing AccessToken and RefreshToken). See the README.",
         "data": {
           "credentials": "Login response / tokens"
         }
@@ -23,7 +23,7 @@
       }
     },
     "error": {
-      "invalid_format": "Unrecognised format: paste the login JSON or a token.",
+      "invalid_format": "Unrecognised format: paste the full login JSON (RefreshToken and Username required).",
       "invalid_auth": "Invalid or expired tokens.",
       "cannot_connect": "Unable to reach the Ekwateur API.",
       "no_contract": "No contract found on this account.",

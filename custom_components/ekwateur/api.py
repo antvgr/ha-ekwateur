@@ -2,10 +2,10 @@
 
 Authentification :
 - l'utilisateur se connecte lui-même sur le site (captcha résolu par un humain) ;
-- la réponse de POST /auth contient AccessToken (24 h) + RefreshToken (Cognito) ;
-- l'intégration renouvelle l'AccessToken avec le RefreshToken, d'abord via
-  l'endpoint Ekwateur /refresh_token, sinon via le flux standard Cognito
-  REFRESH_TOKEN_AUTH du même client applicatif.
+- la réponse de POST /auth contient AccessToken (24 h) + RefreshToken ;
+- l'intégration renouvelle l'AccessToken via POST /refresh_token
+  (corps : refreshToken + username + source). Le client Cognito sous-jacent
+  possède un secret : le flux Cognito direct n'est pas utilisable.
 """
 from __future__ import annotations
 
@@ -123,19 +123,11 @@ class EkwateurApi:
         access_token: str | None,
         refresh_token: str | None = None,
         username: str | None = None,
-        cognito_client_id: str | None = None,
-        cognito_region: str | None = None,
     ) -> None:
         self._session = session
         self.access_token = access_token
         self.refresh_token = refresh_token
         self.username = username
-        claims = _jwt_claims(access_token)
-        self.cognito_client_id = cognito_client_id or claims.get("client_id")
-        iss = claims.get("iss", "")
-        self.cognito_region = cognito_region or (
-            iss.split("cognito-idp.")[1].split(".")[0] if "cognito-idp." in iss else None
-        )
 
     # ----- état ------------------------------------------------------------ #
     @property
@@ -148,90 +140,38 @@ class EkwateurApi:
             "access_token": self.access_token,
             "refresh_token": self.refresh_token,
             "username": self.username,
-            "cognito_client_id": self.cognito_client_id,
-            "cognito_region": self.cognito_region,
         }
 
     # ----- renouvellement --------------------------------------------------- #
     async def refresh(self) -> bool:
         """Obtient un nouvel AccessToken. True si succès."""
-        if not self.refresh_token:
+        if not (self.refresh_token and self.username):
             return False
-        if await self._refresh_via_ekwateur():
-            return True
-        if await self._refresh_via_cognito():
-            return True
-        return False
-
-    async def _refresh_via_ekwateur(self) -> bool:
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
             "Origin": WEB_ORIGIN,
             "Referer": f"{WEB_ORIGIN}/",
         }
-        if self.access_token:
-            headers["Authorization"] = f"Bearer {self.access_token}"
-        # Le format exact du corps n'est pas documenté : on essaie les variantes usuelles.
-        bodies = [
-            {"refreshToken": self.refresh_token, "username": self.username, "source": "customer_portal"},
-            {"RefreshToken": self.refresh_token, "Username": self.username},
-            {"refresh_token": self.refresh_token, "username": self.username},
-            {"refreshToken": self.refresh_token, "login": self.username, "source": "customer_portal"},
-        ]
-        for body in bodies:
-            body = {k: v for k, v in body.items() if v is not None}
-            try:
-                async with asyncio.timeout(30):
-                    resp = await self._session.post(
-                        f"{API_BASE}{EP_REFRESH}", headers=headers, json=body
-                    )
-                    status = resp.status
-                    data = await resp.json(content_type=None) if status < 400 else None
-            except (aiohttp.ClientError, TimeoutError, ValueError) as err:
-                _LOGGER.debug("Ekwateur /refresh_token erreur: %s", err)
-                return False
-            if status >= 400:
-                _LOGGER.debug("Ekwateur /refresh_token clés=%s -> HTTP %s", list(body), status)
-                continue
-            if self._apply(data):
-                _LOGGER.info("Jeton renouvelé via Ekwateur (clés %s)", list(body))
-                return True
-        return False
-
-    async def _refresh_via_cognito(self) -> bool:
-        if not (self.cognito_client_id and self.cognito_region):
-            return False
-        url = f"https://cognito-idp.{self.cognito_region}.amazonaws.com/"
-        headers = {
-            "Content-Type": "application/x-amz-json-1.1",
-            "X-Amz-Target": "AWSCognitoIdentityProviderService.InitiateAuth",
-        }
         body = {
-            "AuthFlow": "REFRESH_TOKEN_AUTH",
-            "ClientId": self.cognito_client_id,
-            "AuthParameters": {"REFRESH_TOKEN": self.refresh_token},
+            "refreshToken": self.refresh_token,
+            "username": self.username,
+            "source": "customer_portal",
         }
         try:
             async with asyncio.timeout(30):
-                resp = await self._session.post(url, headers=headers, data=json.dumps(body))
-                data = await resp.json(content_type=None)
+                resp = await self._session.post(
+                    f"{API_BASE}{EP_REFRESH}", headers=headers, json=body
+                )
                 status = resp.status
+                data = await resp.json(content_type=None) if status < 400 else None
         except (aiohttp.ClientError, TimeoutError, ValueError) as err:
-            _LOGGER.debug("Cognito refresh erreur: %s", err)
+            _LOGGER.debug("Ekwateur /refresh_token erreur: %s", err)
             return False
         if status >= 400:
-            # ex. NotAuthorizedException (refresh expiré/révoqué) ou client avec secret
-            _LOGGER.warning(
-                "Renouvellement Cognito refusé: %s %s",
-                (data or {}).get("__type"),
-                (data or {}).get("message"),
-            )
+            _LOGGER.debug("Ekwateur /refresh_token -> HTTP %s", status)
             return False
-        if self._apply(data):
-            _LOGGER.info("Jeton renouvelé via Cognito")
-            return True
-        return False
+        return self._apply(data)
 
     def _apply(self, data: Any) -> bool:
         new_access = _extract_access_token(data)

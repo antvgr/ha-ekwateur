@@ -7,15 +7,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import EkwateurApi
-from .const import (
-    CONF_ACCESS_TOKEN,
-    CONF_COGNITO_CLIENT_ID,
-    CONF_COGNITO_REGION,
-    CONF_REFRESH_TOKEN,
-    CONF_USERNAME,
-    DEFAULT_COGNITO_CLIENT_ID,
-    DEFAULT_COGNITO_REGION,
-)
+from .const import CONF_ACCESS_TOKEN, CONF_REFRESH_TOKEN, CONF_USERNAME
 from .coordinator import EkwateurCoordinator
 
 PLATFORMS = [Platform.SENSOR]
@@ -29,8 +21,6 @@ def build_api(hass: HomeAssistant, data: dict) -> EkwateurApi:
         access_token=data.get(CONF_ACCESS_TOKEN),
         refresh_token=data.get(CONF_REFRESH_TOKEN),
         username=data.get(CONF_USERNAME),
-        cognito_client_id=data.get(CONF_COGNITO_CLIENT_ID) or DEFAULT_COGNITO_CLIENT_ID,
-        cognito_region=data.get(CONF_COGNITO_REGION) or DEFAULT_COGNITO_REGION,
     )
 
 

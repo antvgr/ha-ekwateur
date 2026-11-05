@@ -39,7 +39,7 @@ class EkwateurConfigFlow(ConfigFlow, domain=DOMAIN):
         from . import build_api
 
         creds = parse_credentials(raw)
-        if not (creds["access_token"] or creds["refresh_token"]):
+        if not (creds["refresh_token"] and creds["username"]):
             return {"base": "invalid_format"}
         self._api = build_api(self.hass, creds)
         try:

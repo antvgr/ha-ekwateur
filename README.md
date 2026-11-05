@@ -41,9 +41,9 @@ La connexion Ekwateur exige un captcha (Cloudflare Turnstile). L'intégration ne
 La connexion Ekwateur est protégée par un captcha : **c'est vous qui vous connectez** sur le site, une fois. La réponse de connexion contient :
 
 - `AccessToken` : valable 24 h ;
-- `RefreshToken` : longue durée (30 jours par défaut chez AWS Cognito, la durée réelle est fixée par Ekwateur).
+- `RefreshToken` : longue durée (durée fixée par Ekwateur).
 
-L'intégration renouvelle l'AccessToken toute seule avec le RefreshToken (vérification toutes les 3 h), d'abord via l'endpoint Ekwateur `/refresh_token`, sinon via le renouvellement Cognito standard. Les jetons renouvelés sont sauvegardés. Quand le RefreshToken finit par expirer, Home Assistant affiche « Réauthentification requise » : il suffit de refaire l'étape ci-dessous depuis votre téléphone.
+L'intégration renouvelle l'AccessToken toute seule avec le RefreshToken (vérification toutes les 3 h), via l'endpoint Ekwateur `/refresh_token`. Les jetons renouvelés sont sauvegardés. Quand le RefreshToken finit par expirer, Home Assistant affiche « Réauthentification requise » : il suffit de refaire l'étape ci-dessous depuis votre téléphone.
 
 ### Favori « Jetons Ekwateur » (fonctionne sur téléphone)
 
@@ -70,7 +70,7 @@ Sur ordinateur, vous pouvez aussi copier la réponse de la requête `POST /auth`
 - `GET /v2/meters-readings/{ref}` : relèves
 - `GET /v3/my_profile/bills_history/{ref}` : mensualités / factures
 - `GET /billing/tariff-options/{ref}` : prix kWh + abonnement
-- `POST /refresh_token` ou Cognito `InitiateAuth` (`REFRESH_TOKEN_AUTH`) : renouvellement de session
+- `POST /refresh_token` : renouvellement de session (le client Cognito a un secret, le renouvellement Cognito direct est impossible)
 
 ## Débogage
 
