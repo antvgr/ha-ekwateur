@@ -17,6 +17,7 @@ Intégration **non officielle** (sans lien avec Ekwateur) qui récupère depuis 
 | Offre | texte | type (FIXE…), fin de période |
 | Dernier montant facturé | € | diagnostic |
 | Jeton expire le | horodatage | diagnostic : doit avancer tout seul |
+| Prochaine actualisation | horodatage | diagnostic : heure de la prochaine interrogation de l'API (toutes les 3 h), affichée « dans X heures » |
 
 ## Installation
 

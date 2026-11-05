@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -29,6 +30,8 @@ class EkwateurCoordinator(DataUpdateCoordinator[dict]):
         )
         self.api = api
         self.ref: str = entry.data[CONF_CUSTOMER_REF]
+        # Heure estimée de la prochaine actualisation (mise à jour à chaque tentative)
+        self.next_refresh: datetime | None = None
 
     def _persist_tokens(self) -> None:
         """Sauvegarde les jetons s'ils ont changé (renouvellement / rotation)."""
@@ -40,6 +43,8 @@ class EkwateurCoordinator(DataUpdateCoordinator[dict]):
             )
 
     async def _async_update_data(self) -> dict:
+        # Le minuteur est relancé à la fin de chaque tentative, réussie ou non.
+        self.next_refresh = dt_util.utcnow() + self.update_interval
         exp = self.api.expires_at
         if exp is None or exp - dt_util.utcnow() < REFRESH_MARGIN:
             if not await self.api.refresh() and (exp is None or exp <= dt_util.utcnow()):
