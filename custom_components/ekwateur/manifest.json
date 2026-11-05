@@ -1,6 +1,7 @@
 {
   "domain": "ekwateur",
   "name": "Ekwateur",
+  "categories": ["energy.meters_monitoring", "energy.energy_prices"],
   "codeowners": ["@antvgr"],
   "config_flow": true,
   "dependencies": [],
